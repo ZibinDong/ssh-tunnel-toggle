@@ -11,8 +11,15 @@ enum TunnelDirection: String, Codable, CaseIterable, Identifiable {
 
     var label: String {
         switch self {
-        case .localForward: return "Local Forward (-L)"
-        case .remoteForward: return "Remote Forward (-R)"
+        case .localForward: return "Local → Remote (-L)"
+        case .remoteForward: return "Remote → Local (-R)"
+        }
+    }
+
+    var description: String {
+        switch self {
+        case .localForward: return "Local port → Remote machine (e.g. access remote service locally)"
+        case .remoteForward: return "Remote port → Local machine (e.g. use local proxy on remote server)"
         }
     }
 
@@ -44,15 +51,17 @@ struct TunnelConfig: Codable, Identifiable {
 
     /// Runtime-only, not persisted
     var isActive: Bool = false
+    var isStarting: Bool = false
+    var lastError: String?
 
     init(
         id: UUID = UUID(),
         name: String = "",
         sshHost: String = "",
-        direction: TunnelDirection = .localForward,
-        localPort: Int = 8080,
-        remotePort: Int = 80,
-        autoReconnect: Bool = true
+        direction: TunnelDirection = .remoteForward,
+        localPort: Int = 6789,
+        remotePort: Int = 6789,
+        autoReconnect: Bool = false
     ) {
         self.id = id
         self.name = name
@@ -70,29 +79,49 @@ struct TunnelConfig: Codable, Identifiable {
     var displayString: String {
         "\(localPort) ↔ \(remotePort) @ \(sshHost)"
     }
+
+    var forwardDescription: String {
+        switch direction {
+        case .localForward:
+            return "localhost:\(localPort) → \(sshHost):\(remotePort)"
+        case .remoteForward:
+            return "\(sshHost):\(remotePort) → localhost:\(localPort)"
+        }
+    }
+
+    var sshForwardArguments: [String] {
+        switch direction {
+        case .localForward:
+            return [direction.sshFlag, "\(localPort):127.0.0.1:\(remotePort)"]
+        case .remoteForward:
+            return [direction.sshFlag, "\(remotePort):127.0.0.1:\(localPort)"]
+        }
+    }
 }
 
 // MARK: - Persistence
 
-extension TunnelConfig {
-    private static var configDirectory: URL {
-        let appSupport = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
-        let dir = appSupport.appendingPathComponent("SSH Tunnel Toggle", isDirectory: true)
-        try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
-        return dir
+protocol TunnelConfigStoring {
+    func loadAll() -> [TunnelConfig]
+    func saveAll(_ configs: [TunnelConfig])
+}
+
+struct FileTunnelConfigStore: TunnelConfigStoring {
+    let configURL: URL
+
+    init(configURL: URL = FileTunnelConfigStore.defaultConfigURL) {
+        self.configURL = configURL
     }
 
-    private static var configURL: URL {
-        configDirectory.appendingPathComponent("config.json")
-    }
-
-    static func loadAll() -> [TunnelConfig] {
-        let url = configURL
-        guard let data = try? Data(contentsOf: url) else { return [] }
+    func loadAll() -> [TunnelConfig] {
+        guard let data = try? Data(contentsOf: configURL) else { return [] }
         do {
             var configs = try JSONDecoder().decode([TunnelConfig].self, from: data)
-            // Ensure isActive is false on load
-            for i in configs.indices { configs[i].isActive = false }
+            for i in configs.indices {
+                configs[i].isActive = false
+                configs[i].isStarting = false
+                configs[i].lastError = nil
+            }
             return configs
         } catch {
             print("Failed to load tunnel configs: \(error)")
@@ -100,13 +129,34 @@ extension TunnelConfig {
         }
     }
 
-    static func saveAll(_ configs: [TunnelConfig]) {
+    func saveAll(_ configs: [TunnelConfig]) {
         do {
+            try FileManager.default.createDirectory(
+                at: configURL.deletingLastPathComponent(),
+                withIntermediateDirectories: true
+            )
             let data = try JSONEncoder().encode(configs)
             try data.write(to: configURL, options: .atomic)
         } catch {
             print("Failed to save tunnel configs: \(error)")
         }
+    }
+
+    private static var defaultConfigURL: URL {
+        let appSupport = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
+        return appSupport
+            .appendingPathComponent("SSH Tunnel Toggle", isDirectory: true)
+            .appendingPathComponent("config.json")
+    }
+}
+
+extension TunnelConfig {
+    static func loadAll() -> [TunnelConfig] {
+        FileTunnelConfigStore().loadAll()
+    }
+
+    static func saveAll(_ configs: [TunnelConfig]) {
+        FileTunnelConfigStore().saveAll(configs)
     }
 }
 

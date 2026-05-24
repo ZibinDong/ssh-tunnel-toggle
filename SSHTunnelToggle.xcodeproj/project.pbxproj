@@ -13,18 +13,33 @@
 		7C82B5C490F14C94654B0667 /* TunnelManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 779AA4E6D217178EB4CC4553 /* TunnelManager.swift */; };
 		84ADB89F3F27A901A0DCDF12 /* MenuBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8203B24D7760C6510E0F480E /* MenuBarView.swift */; };
 		8FCA418B7AD27039D49DC643 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = DE78FB958E4D76B2681F3AA2 /* Assets.xcassets */; };
+		9F06B3FCE5281C9E00F6A3B4 /* AppResourceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FBE8840776902E2D05DF5476 /* AppResourceTests.swift */; };
+		B84EDBE4837645F87BB372BF /* TunnelConfigTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4618236AA6F6186CEC41CE9F /* TunnelConfigTests.swift */; };
 /* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		BB695CC4AF7745802951710E /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 7B5C2CDD1CB0079BC7634AB0 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = DAC19234BCC74DE4D86CEE74;
+			remoteInfo = SSHTunnelToggle;
+		};
+/* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
 		1C31751FC2363C74ACB036FB /* TunnelConfigSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TunnelConfigSheet.swift; sourceTree = "<group>"; };
 		388CEC1A1062A72563923E6D /* TunnelConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TunnelConfig.swift; sourceTree = "<group>"; };
 		45CEBCC2F809E44FC7D5CB4F /* SSHTunnelToggle.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SSHTunnelToggle.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		4618236AA6F6186CEC41CE9F /* TunnelConfigTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TunnelConfigTests.swift; sourceTree = "<group>"; };
 		6F7D18AE869DB0151545677B /* SSHTunnelToggleApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SSHTunnelToggleApp.swift; sourceTree = "<group>"; };
 		779AA4E6D217178EB4CC4553 /* TunnelManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TunnelManager.swift; sourceTree = "<group>"; };
 		8203B24D7760C6510E0F480E /* MenuBarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarView.swift; sourceTree = "<group>"; };
 		8668D18901B02DC4EC73F6E8 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		A8E9BF766576EF3476FFC442 /* SSHTunnelToggle.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = SSHTunnelToggle.entitlements; sourceTree = "<group>"; };
 		DE78FB958E4D76B2681F3AA2 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		EE67B8D4496E1A8234B4CFF2 /* SSHTunnelToggleTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SSHTunnelToggleTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		FBE8840776902E2D05DF5476 /* AppResourceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppResourceTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -41,10 +56,20 @@
 			path = SSHTunnelToggle;
 			sourceTree = "<group>";
 		};
+		3F6C0E33E45E3DA5F2311909 /* SSHTunnelToggleTests */ = {
+			isa = PBXGroup;
+			children = (
+				FBE8840776902E2D05DF5476 /* AppResourceTests.swift */,
+				4618236AA6F6186CEC41CE9F /* TunnelConfigTests.swift */,
+			);
+			path = SSHTunnelToggleTests;
+			sourceTree = "<group>";
+		};
 		4CFF51414C6E7C3A8386EF33 /* Products */ = {
 			isa = PBXGroup;
 			children = (
 				45CEBCC2F809E44FC7D5CB4F /* SSHTunnelToggle.app */,
+				EE67B8D4496E1A8234B4CFF2 /* SSHTunnelToggleTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -71,6 +96,7 @@
 			isa = PBXGroup;
 			children = (
 				138319051DB34D8ED775469F /* SSHTunnelToggle */,
+				3F6C0E33E45E3DA5F2311909 /* SSHTunnelToggleTests */,
 				4CFF51414C6E7C3A8386EF33 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -78,6 +104,24 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		454ED97BE12520A1107B41F8 /* SSHTunnelToggleTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = F18EB6ADACD37A9E784C0F1F /* Build configuration list for PBXNativeTarget "SSHTunnelToggleTests" */;
+			buildPhases = (
+				0E3212BA572C04E660AD37EF /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				85753C5E858005ADD5F8337E /* PBXTargetDependency */,
+			);
+			name = SSHTunnelToggleTests;
+			packageProductDependencies = (
+			);
+			productName = SSHTunnelToggleTests;
+			productReference = EE67B8D4496E1A8234B4CFF2 /* SSHTunnelToggleTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 		DAC19234BCC74DE4D86CEE74 /* SSHTunnelToggle */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 2F01C820112AF76AB9B7465C /* Build configuration list for PBXNativeTarget "SSHTunnelToggle" */;
@@ -105,6 +149,9 @@
 				BuildIndependentTargetsInParallel = YES;
 				LastUpgradeCheck = 1500;
 				TargetAttributes = {
+					454ED97BE12520A1107B41F8 = {
+						ProvisioningStyle = Manual;
+					};
 					DAC19234BCC74DE4D86CEE74 = {
 						ProvisioningStyle = Manual;
 					};
@@ -125,6 +172,7 @@
 			projectRoot = "";
 			targets = (
 				DAC19234BCC74DE4D86CEE74 /* SSHTunnelToggle */,
+				454ED97BE12520A1107B41F8 /* SSHTunnelToggleTests */,
 			);
 		};
 /* End PBXProject section */
@@ -141,6 +189,15 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		0E3212BA572C04E660AD37EF /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				9F06B3FCE5281C9E00F6A3B4 /* AppResourceTests.swift in Sources */,
+				B84EDBE4837645F87BB372BF /* TunnelConfigTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		F9DEDE6A7EA7AD3E8FD633C8 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -155,7 +212,51 @@
 		};
 /* End PBXSourcesBuildPhase section */
 
+/* Begin PBXTargetDependency section */
+		85753C5E858005ADD5F8337E /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = DAC19234BCC74DE4D86CEE74 /* SSHTunnelToggle */;
+			targetProxy = BB695CC4AF7745802951710E /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
 /* Begin XCBuildConfiguration section */
+		4090772E5716B07B6ACDA17C /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				COMBINE_HIDPI_IMAGES = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.ssh-tunnel-toggle.tests";
+				SDKROOT = macosx;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/SSHTunnelToggle.app/Contents/MacOS/SSHTunnelToggle";
+			};
+			name = Release;
+		};
+		6E577FFB3A33C5AB2EA1AC11 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				COMBINE_HIDPI_IMAGES = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.ssh-tunnel-toggle.tests";
+				SDKROOT = macosx;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/SSHTunnelToggle.app/Contents/MacOS/SSHTunnelToggle";
+			};
+			name = Debug;
+		};
 		7FD415A26067E29B6D91E972 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -342,6 +443,15 @@
 			buildConfigurations = (
 				EABF56B292C79A6D135416F3 /* Debug */,
 				7FD415A26067E29B6D91E972 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		F18EB6ADACD37A9E784C0F1F /* Build configuration list for PBXNativeTarget "SSHTunnelToggleTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				6E577FFB3A33C5AB2EA1AC11 /* Debug */,
+				4090772E5716B07B6ACDA17C /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Debug;

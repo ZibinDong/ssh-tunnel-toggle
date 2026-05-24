@@ -3,58 +3,57 @@ import SwiftUI
 enum SheetMode {
     case add
     case edit(TunnelConfig)
+
+    var isEditing: Bool {
+        if case .edit = self { return true }
+        return false
+    }
 }
 
 struct TunnelConfigSheet: View {
     @ObservedObject var manager: TunnelManager
+    @ObservedObject var form: TunnelConfigFormModel
     let mode: SheetMode
-
-    @Environment(\.dismiss) private var dismiss
-
-    @State private var name: String = ""
-    @State private var sshHost: String = ""
-    @State private var direction: TunnelDirection = .localForward
-    @State private var localPort: Int = 8080
-    @State private var remotePort: Int = 80
-    @State private var autoReconnect: Bool = true
-
-    @State private var sshHosts: [String] = []
-
-    private var isEditing: Bool {
-        if case .edit = mode { return true }
-        return false
-    }
+    let onClose: () -> Void
+    private let sshConfigHosts = TunnelConfig.parseSSHConfigHosts()
 
     var body: some View {
         VStack(spacing: 16) {
-            Text(isEditing ? "Edit Tunnel" : "Add Tunnel")
+            Text(mode.isEditing ? "Edit Tunnel" : "Add Tunnel")
                 .font(.headline)
 
             Form {
-                TextField("Name", text: $name, prompt: Text("Optional display name"))
+                LabeledContent("Name") {
+                    AppKitTextField(text: $form.name, placeholder: "Optional display name")
+                }
 
-                HStack {
-                    ComboBox(
-                        items: sshHosts,
-                        selection: $sshHost,
-                        prompt: "SSH Host"
+                LabeledContent("SSH Host") {
+                    SSHHostComboBox(
+                        text: $form.sshHost,
+                        hosts: sshConfigHosts,
+                        placeholder: "e.g. Galaxea_dev"
                     )
                 }
 
-                Picker("Direction", selection: $direction) {
-                    ForEach(TunnelDirection.allCases) { dir in
-                        Text(dir.label).tag(dir)
+                VStack(alignment: .leading, spacing: 4) {
+                    Picker("Direction", selection: $form.direction) {
+                        ForEach(TunnelDirection.allCases) { dir in
+                            Text(dir.label).tag(dir)
+                        }
                     }
+                    .pickerStyle(.segmented)
+
+                    Text(form.direction.description)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
                 }
-                .pickerStyle(.segmented)
 
                 HStack(spacing: 16) {
                     VStack(alignment: .leading) {
                         Text("Local Port")
                             .font(.caption)
                             .foregroundStyle(.secondary)
-                        TextField("", value: $localPort, format: .number)
-                            .textFieldStyle(.roundedBorder)
+                        AppKitTextField(text: $form.localPort, placeholder: "6789")
                             .frame(width: 80)
                     }
 
@@ -66,30 +65,28 @@ struct TunnelConfigSheet: View {
                         Text("Remote Port")
                             .font(.caption)
                             .foregroundStyle(.secondary)
-                        TextField("", value: $remotePort, format: .number)
-                            .textFieldStyle(.roundedBorder)
+                        AppKitTextField(text: $form.remotePort, placeholder: "6789")
                             .frame(width: 80)
                     }
                 }
 
-                Toggle("Auto-Reconnect", isOn: $autoReconnect)
             }
             .formStyle(.grouped)
 
             HStack {
-                if isEditing {
+                if mode.isEditing {
                     Button("Delete", role: .destructive) {
                         if case .edit(let config) = mode {
                             manager.deleteTunnel(id: config.id)
                         }
-                        dismiss()
+                        onClose()
                     }
                 }
 
                 Spacer()
 
                 Button("Cancel") {
-                    dismiss()
+                    onClose()
                 }
                 .keyboardShortcut(.cancelAction)
 
@@ -97,107 +94,182 @@ struct TunnelConfigSheet: View {
                     save()
                 }
                 .keyboardShortcut(.defaultAction)
-                .disabled(sshHost.isEmpty || localPort < 1 || remotePort < 1)
+                .disabled(!form.isValid)
             }
         }
         .padding(20)
         .frame(width: 420)
-        .onAppear {
-            loadSSHHosts()
-            if case .edit(let config) = mode {
-                name = config.name
-                sshHost = config.sshHost
-                direction = config.direction
-                localPort = config.localPort
-                remotePort = config.remotePort
-                autoReconnect = config.autoReconnect
-            }
-        }
-    }
-
-    private func loadSSHHosts() {
-        sshHosts = TunnelConfig.parseSSHConfigHosts()
     }
 
     private func save() {
+        guard let lp = Int(form.localPort), let rp = Int(form.remotePort) else { return }
         switch mode {
         case .add:
             let config = TunnelConfig(
-                name: name,
-                sshHost: sshHost,
-                direction: direction,
-                localPort: localPort,
-                remotePort: remotePort,
-                autoReconnect: autoReconnect
+                name: form.name,
+                sshHost: form.trimmedSSHHost,
+                direction: form.direction,
+                localPort: lp,
+                remotePort: rp,
+                autoReconnect: false
             )
             manager.addTunnel(config)
 
         case .edit(let original):
             var updated = original
-            updated.name = name
-            updated.sshHost = sshHost
-            updated.direction = direction
-            updated.localPort = localPort
-            updated.remotePort = remotePort
-            updated.autoReconnect = autoReconnect
+            updated.name = form.name
+            updated.sshHost = form.trimmedSSHHost
+            updated.direction = form.direction
+            updated.localPort = lp
+            updated.remotePort = rp
+            updated.autoReconnect = false
             manager.updateTunnel(updated)
         }
-        dismiss()
+        onClose()
     }
 }
 
-// MARK: - ComboBox (NSComboBox wrapper)
+@MainActor
+final class TunnelConfigFormModel: ObservableObject {
+    @Published var name: String
+    @Published var sshHost: String
+    @Published var direction: TunnelDirection
+    @Published var localPort: String
+    @Published var remotePort: String
 
-struct ComboBox: NSViewRepresentable {
-    let items: [String]
-    @Binding var selection: String
-    let prompt: String
+    init(mode: SheetMode) {
+        switch mode {
+        case .add:
+            name = ""
+            sshHost = ""
+            direction = .remoteForward
+            localPort = "6789"
+            remotePort = "6789"
+        case .edit(let config):
+            name = config.name
+            sshHost = config.sshHost
+            direction = config.direction
+            localPort = String(config.localPort)
+            remotePort = String(config.remotePort)
+        }
+    }
+
+    var trimmedSSHHost: String {
+        sshHost.trimmingCharacters(in: .whitespaces)
+    }
+
+    var isValid: Bool {
+        guard !trimmedSSHHost.isEmpty else { return false }
+        guard let lp = Int(localPort), lp > 0, lp <= 65535 else { return false }
+        guard let rp = Int(remotePort), rp > 0, rp <= 65535 else { return false }
+        return true
+    }
+}
+
+private struct SSHHostComboBox: NSViewRepresentable {
+    @Binding var text: String
+    let hosts: [String]
+    let placeholder: String
 
     func makeNSView(context: Context) -> NSComboBox {
         let comboBox = NSComboBox()
+        comboBox.stringValue = text
+        comboBox.placeholderString = placeholder
+        comboBox.bezelStyle = .roundedBezel
+        comboBox.isBordered = true
+        comboBox.drawsBackground = true
         comboBox.isEditable = true
-        comboBox.placeholderString = prompt
-       comboBox.completes = true
-        comboBox.usesDataSource = false
-        comboBox.numberOfVisibleItems = 10
+        comboBox.completes = true
+        comboBox.numberOfVisibleItems = min(max(hosts.count, 1), 12)
+        comboBox.addItems(withObjectValues: hosts)
         comboBox.delegate = context.coordinator
-        comboBox.target = context.coordinator
-        comboBox.action = #selector(Coordinator.textDidChange(_:))
         return comboBox
     }
 
     func updateNSView(_ comboBox: NSComboBox, context: Context) {
-        // Only update items if they changed
-        let currentItems = (0..<comboBox.numberOfItems).compactMap { comboBox.itemObjectValue(at: $0) as? String }
-        if currentItems != items {
-            comboBox.removeAllItems()
-            comboBox.addItems(withObjectValues: items)
-        }
+        context.coordinator.text = $text
 
-        // Set the selection without triggering delegate
-        if comboBox.stringValue != selection {
-            comboBox.stringValue = selection
+        if comboBox.stringValue != text {
+            comboBox.stringValue = text
+        }
+        comboBox.placeholderString = placeholder
+
+        let existingHosts = (0..<comboBox.numberOfItems).compactMap { comboBox.itemObjectValue(at: $0) as? String }
+        if existingHosts != hosts {
+            comboBox.removeAllItems()
+            comboBox.addItems(withObjectValues: hosts)
+            comboBox.numberOfVisibleItems = min(max(hosts.count, 1), 12)
         }
     }
 
     func makeCoordinator() -> Coordinator {
-        Coordinator(selection: $selection)
+        Coordinator(text: $text)
     }
 
-    class Coordinator: NSObject, NSComboBoxDelegate {
-        var selection: Binding<String>
+    final class Coordinator: NSObject, NSComboBoxDelegate, NSTextFieldDelegate {
+        var text: Binding<String>
 
-        init(selection: Binding<String>) {
-            self.selection = selection
+        init(text: Binding<String>) {
+            self.text = text
         }
 
-        @objc func textDidChange(_ sender: NSComboBox) {
-            selection.wrappedValue = sender.stringValue
+        func controlTextDidChange(_ notification: Notification) {
+            guard let textField = notification.object as? NSTextField else { return }
+            updateText(textField.stringValue)
         }
 
         func comboBoxSelectionDidChange(_ notification: Notification) {
             guard let comboBox = notification.object as? NSComboBox else { return }
-            selection.wrappedValue = comboBox.stringValue
+            if let selectedValue = comboBox.objectValueOfSelectedItem as? String {
+                updateText(selectedValue)
+            } else {
+                updateText(comboBox.stringValue)
+            }
+        }
+
+        private func updateText(_ newValue: String) {
+            if text.wrappedValue != newValue {
+                text.wrappedValue = newValue
+            }
+        }
+    }
+}
+
+private struct AppKitTextField: NSViewRepresentable {
+    @Binding var text: String
+    let placeholder: String
+
+    func makeNSView(context: Context) -> NSTextField {
+        let textField = NSTextField(string: text)
+        textField.placeholderString = placeholder
+        textField.bezelStyle = .roundedBezel
+        textField.isBordered = true
+        textField.drawsBackground = true
+        textField.delegate = context.coordinator
+        return textField
+    }
+
+    func updateNSView(_ textField: NSTextField, context: Context) {
+        if textField.stringValue != text {
+            textField.stringValue = text
+        }
+        textField.placeholderString = placeholder
+    }
+
+    func makeCoordinator() -> Coordinator {
+        Coordinator(text: $text)
+    }
+
+    final class Coordinator: NSObject, NSTextFieldDelegate {
+        private var text: Binding<String>
+
+        init(text: Binding<String>) {
+            self.text = text
+        }
+
+        func controlTextDidChange(_ notification: Notification) {
+            guard let textField = notification.object as? NSTextField else { return }
+            text.wrappedValue = textField.stringValue
         }
     }
 }

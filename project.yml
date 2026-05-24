@@ -28,3 +28,15 @@ targets:
         ENABLE_APP_SANDBOX: NO
         GENERATE_INFOPLIST_FILE: NO
         MACOSX_DEPLOYMENT_TARGET: "14.0"
+  SSHTunnelToggleTests:
+    type: bundle.unit-test
+    platform: macOS
+    sources:
+      - SSHTunnelToggleTests
+    dependencies:
+      - target: SSHTunnelToggle
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.ssh-tunnel-toggle.tests
+        GENERATE_INFOPLIST_FILE: YES
+        MACOSX_DEPLOYMENT_TARGET: "14.0"
