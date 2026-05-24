@@ -1,0 +1,30 @@
+name: SSHTunnelToggle
+options:
+  deploymentTarget:
+    macOS: "14.0"
+  xcodeVersion: "15.0"
+  generateEmptyDirectories: true
+settings:
+  base:
+    MACOSX_DEPLOYMENT_TARGET: "14.0"
+    SWIFT_VERSION: "5.9"
+    CODE_SIGN_IDENTITY: "-"
+    CODE_SIGN_STYLE: Manual
+    GENERATE_INFOPLIST_FILE: NO
+    ENABLE_APP_SANDBOX: NO
+targets:
+  SSHTunnelToggle:
+    type: application
+    platform: macOS
+    sources:
+      - SSHTunnelToggle
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.ssh-tunnel-toggle.app
+        INFOPLIST_FILE: SSHTunnelToggle/Info.plist
+        CODE_SIGN_ENTITLEMENTS: SSHTunnelToggle/SSHTunnelToggle.entitlements
+        CODE_SIGN_IDENTITY: "-"
+        CODE_SIGN_STYLE: Manual
+        ENABLE_APP_SANDBOX: NO
+        GENERATE_INFOPLIST_FILE: NO
+        MACOSX_DEPLOYMENT_TARGET: "14.0"
